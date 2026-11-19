@@ -6,7 +6,7 @@ Aplicație web pentru evidența abonamentelor personale.
 
 **Site online:** _adaugă aici adresa din Laravel Cloud_
 
-Aplicația este publicată pe [Laravel Cloud]([https://cloud.laravel.com](https://tracker-abonamente-production-ywyctg.laravel.cloud), direct din acest repository: fiecare push pe `main` declanșează un deploy nou.
+Aplicația este publicată pe [Laravel Cloud](https://tracker-abonamente-production-ywyctg.laravel.cloud), direct din acest repository: fiecare push pe `main` declanșează un deploy nou.
 
 ---
 
