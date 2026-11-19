@@ -10,7 +10,8 @@ test('settings page can be rendered', function () {
     $this->actingAs($user)->get(route('settings'))
         ->assertOk()
         ->assertSee('Profil')
-        ->assertSee('Autentificare în doi pași');
+        ->assertSee('Dispozitive conectate')
+        ->assertDontSee('Autentificare în doi pași');
 });
 
 test('profile information can be updated', function () {

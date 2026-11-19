@@ -4,7 +4,7 @@ Aplicație web pentru evidența abonamentelor personale.
 
 **Stack:** Laravel 13 · PostgreSQL · Blade + Alpine.js (fără Livewire) · CSS vanilla (fără Tailwind/Bootstrap) · autentificare cu Laravel Fortify.
 
-**Site online:** _adaugă aici adresa din Laravel Cloud_
+**Site online:** https://tracker-abonamente-production-ywyctg.laravel.cloud
 
 Aplicația este publicată pe [Laravel Cloud](https://tracker-abonamente-production-ywyctg.laravel.cloud), direct din acest repository: fiecare push pe `main` declanșează un deploy nou.
 
@@ -26,13 +26,7 @@ Aplicația este publicată pe [Laravel Cloud](https://tracker-abonamente-product
 ### 3. Limitarea încercărilor de autentificare
 Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări, autentificarea este blocată pentru un minut.
 
-### 4. Autentificare în doi pași (2FA)
-1. **Setări → Autentificare în doi pași → Activează**. Ți se cere parola contului.
-2. Scanează codul QR cu o aplicație de autentificare (Google Authenticator, Microsoft Authenticator, 1Password etc.) și introdu codul de 6 cifre.
-3. Salvează codurile de recuperare afișate (apar o singură dată).
-4. Ieși din cont și autentifică-te din nou: după parolă ți se cere codul din aplicație. Poți folosi și un cod de recuperare, fiecare funcționează o singură dată.
-
-### 5. Profil, parolă și dispozitive conectate
+### 4. Profil, parolă și dispozitive conectate
 - **Setări → Profil**: schimbarea emailului cere o nouă verificare.
 - **Setări → Schimbă parola**: cere parola actuală.
 - **Setări → Dispozitive conectate**: sesiunile sunt salvate în PostgreSQL. Autentifică-te din alt browser sau de pe telefon, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt dispozitiv va fi deconectat.

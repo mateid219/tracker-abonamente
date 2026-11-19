@@ -13,7 +13,7 @@ use Illuminate\View\View;
 class SettingsController extends Controller
 {
     /**
-     * Account settings: profile, password, two-factor authentication and active sessions.
+     * Account settings: profile, password and active sessions.
      */
     public function show(Request $request): View
     {
@@ -21,16 +21,6 @@ class SettingsController extends Controller
             'user' => $request->user(),
             'sessions' => $this->activeSessions($request),
         ]);
-    }
-
-    /**
-     * Fortify's enable endpoint is a POST behind `password.confirm`, and a POST cannot be
-     * resumed after the confirmation redirect. This GET route asks for the password first,
-     * then sends the user back to settings, where the enable form submits itself.
-     */
-    public function startTwoFactor(): RedirectResponse
-    {
-        return redirect(route('settings').'#two-factor')->with('enable-two-factor', true);
     }
 
     /**

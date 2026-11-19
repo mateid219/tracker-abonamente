@@ -3,10 +3,6 @@
         'profile-information-updated' => 'Profilul a fost actualizat.',
         'password-updated' => 'Parola a fost schimbată.',
         'verification-link-sent' => 'Am trimis un nou link de verificare pe email.',
-        'two-factor-authentication-enabled' => 'Scanează codul QR și confirmă cu un cod din aplicație.',
-        'two-factor-authentication-confirmed' => 'Autentificarea în doi pași este activă.',
-        'two-factor-authentication-disabled' => 'Autentificarea în doi pași a fost dezactivată.',
-        'recovery-codes-generated' => 'Au fost generate coduri de recuperare noi.',
         'other-sessions-logged-out' => 'Celelalte dispozitive au fost deconectate.',
     ];
 
