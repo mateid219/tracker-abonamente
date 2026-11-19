@@ -1,0 +1,23 @@
+:root {
+    --color-bg: #fafafa;
+    --color-text: #1b1b18;
+    --color-primary: #2563eb;
+    --radius: 8px;
+    --space: 1rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+body {
+    font-family: system-ui, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.container { max-width: 960px; margin: 0 auto; padding: calc(var(--space) * 2) var(--space); }
+.card { background: #fff; padding: var(--space); border-radius: var(--radius); margin-top: var(--space); box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
+.btn { background: var(--color-primary); color: #fff; border: 0; padding: .5rem 1rem; border-radius: var(--radius); cursor: pointer; margin-top: .5rem; }
+.btn:hover { opacity: .9; }
+
+[x-cloak] { display: none !important; }
