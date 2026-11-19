@@ -1,58 +1,146 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Tracker Abonamente
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicație web pentru evidența abonamentelor personale.
 
-## About Laravel
+**Stack:** Laravel 13 · PostgreSQL · Blade + Alpine.js (fără Livewire) · CSS vanilla (fără Tailwind/Bootstrap) · autentificare cu Laravel Fortify.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Pentru dezvoltare și testare, PostgreSQL și [Mailpit](https://mailpit.axllent.org/) (un inbox local care prinde toate emailurile trimise de aplicație) rulează în Docker. Aplicația Laravel rulează direct pe calculator.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Cerințe
 
-## Learning Laravel
+| Unealtă | Versiune | Verificare |
+|---|---|---|
+| PHP | 8.3+ (cu extensia `pdo_pgsql`) | `php -v` |
+| Composer | 2.x | `composer -V` |
+| Node.js + npm | 20+ | `node -v` |
+| Docker Desktop | orice versiune recentă, **pornit** | `docker compose version` |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+> Pe macOS, PHP + Composer se pot instala cu o singură comandă:
+> `/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.4)"`
+> (pentru Windows/Linux vezi [php.new](https://php.new)).
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Pornire rapidă
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clonează proiectul
+git clone https://github.com/mateid219/tracker-abonamente.git
+cd tracker-abonamente
 
-php artisan boost:install
+# 2. Pornește PostgreSQL și Mailpit
+docker compose up -d
+
+# 3. Instalează și configurează totul
+#    (pachete PHP și JS, .env, cheia aplicației, tabele, cont demo, build CSS/JS)
+composer run setup
+
+# 4. Pornește aplicația
+composer run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Apoi deschide:
 
-## Contributing
+| Adresă | Ce este |
+|---|---|
+| http://localhost:8000 | Aplicația |
+| http://localhost:8025 | Mailpit: inbox-ul cu emailurile trimise de aplicație |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+`.env.example` este deja configurat pentru serviciile din Docker, deci nu trebuie modificat nimic.
 
-## Code of Conduct
+### Cont demo
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Email | Parolă |
+|---|---|
+| `demo@example.test` | `Demo-Parola-2026` |
 
-## Security Vulnerabilities
+Contul are emailul deja verificat, deci intri direct pe dashboard.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## Ce poți testa
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 1. Înregistrare și verificarea emailului
+1. Mergi la **Cont nou** și creează un cont cu orice adresă (ex. `test@example.test`). Emailurile nu pleacă în afara calculatorului.
+2. Parola trebuie să aibă minimum 10 caractere, litere mari și mici și o cifră. Lista de cerințe se bifează pe măsură ce scrii.
+3. După înregistrare apare pagina „Verifică-ți adresa de email”.
+4. Deschide **http://localhost:8025**, deschide emailul primit și apasă butonul de verificare.
+5. Ești redirecționat pe dashboard. Fără verificare, dashboard-ul și setările nu sunt accesibile.
+
+### 2. Resetarea parolei
+1. Ieși din cont și, pe pagina de autentificare, apasă **Ai uitat parola?**
+2. Introdu emailul contului și deschide emailul din Mailpit.
+3. Setează o parolă nouă și autentifică-te cu ea.
+
+### 3. Limitarea încercărilor de autentificare
+Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări, autentificarea este blocată pentru un minut.
+
+### 4. Autentificare în doi pași (2FA)
+1. **Setări → Autentificare în doi pași → Activează**. Ți se cere parola contului.
+2. Scanează codul QR cu o aplicație de autentificare (Google Authenticator, Microsoft Authenticator, 1Password etc.) și introdu codul de 6 cifre.
+3. Salvează codurile de recuperare afișate (apar o singură dată).
+4. Ieși din cont și autentifică-te din nou: după parolă ți se cere codul din aplicație. Poți folosi și un cod de recuperare, fiecare funcționează o singură dată.
+
+### 5. Profil, parolă și dispozitive conectate
+- **Setări → Profil**: schimbarea emailului cere o nouă verificare (emailul apare în Mailpit).
+- **Setări → Schimbă parola**: cere parola actuală.
+- **Setări → Dispozitive conectate**: sesiunile sunt salvate în PostgreSQL. Autentifică-te din alt browser sau dintr-o fereastră privată, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt browser va fi deconectat.
+
+---
+
+## Teste automate
+
+```bash
+composer run test
+```
+
+Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`), deci nu ating datele din PostgreSQL și nu au nevoie de Docker.
+
+---
+
+## Comenzi utile
+
+| Comandă | Ce face |
+|---|---|
+| `docker compose up -d` | Pornește PostgreSQL și Mailpit |
+| `docker compose down` | Oprește serviciile (datele rămân) |
+| `docker compose down -v` | Oprește serviciile și **șterge baza de date** |
+| `php artisan migrate:fresh --seed` | Recreează toate tabelele și contul demo |
+| `php artisan route:list` | Lista tuturor rutelor |
+| `php artisan db:show` | Informații despre conexiunea la baza de date |
+
+---
+
+## Probleme frecvente
+
+**`Cannot connect to the Docker daemon`**: Docker Desktop nu este pornit. Deschide aplicația și așteaptă până devine activă.
+
+**`port is already allocated`**: portul 5433, 1025 sau 8025 este folosit de alt program. Oprește programul respectiv sau schimbă portul din stânga în `compose.yaml` (ex. `"127.0.0.1:5434:5432"`) și aceeași valoare în `.env` (`DB_PORT=5434`).
+
+**`could not find driver` (PostgreSQL)**: lipsește extensia PHP `pdo_pgsql`. Verifică cu `php -m | grep pgsql`.
+
+**Nu apare niciun email în Mailpit**: verifică în `.env` că `MAIL_MAILER=smtp` și `MAIL_PORT=1025`, apoi rulează `php artisan config:clear`.
+
+**Pagina se încarcă fără stiluri**: rulează `npm run build` sau pornește aplicația cu `composer run dev` (pornește și Vite).
+
+---
+
+## Structura proiectului (pe scurt)
+
+| Locație | Conținut |
+|---|---|
+| `routes/web.php` | Rutele aplicației (rutele de autentificare sunt adăugate de Fortify) |
+| `app/Http/Controllers/` | Controllere (ex. `SettingsController`) |
+| `app/Actions/Fortify/` | Logica de creare cont, resetare și schimbare parolă |
+| `resources/views/` | View-uri Blade (`auth/`, `settings`, `dashboard`, `layouts/`) |
+| `resources/css/app.css` | CSS vanilla |
+| `resources/js/app.js` | Alpine.js |
+| `database/migrations/` | Structura bazei de date |
+| `lang/ro/` | Traducerile în română |
+| `compose.yaml` | Serviciile Docker pentru dezvoltare |
+
+---
+
+> ⚠️ Datele de conectare din `.env.example` și `compose.yaml` (`tracker` / `tracker`) și contul demo sunt **doar pentru dezvoltare locală**. Nu le folosi în producție.
