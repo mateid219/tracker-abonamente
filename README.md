@@ -4,74 +4,23 @@ Aplicație web pentru evidența abonamentelor personale.
 
 **Stack:** Laravel 13 · PostgreSQL · Blade + Alpine.js (fără Livewire) · CSS vanilla (fără Tailwind/Bootstrap) · autentificare cu Laravel Fortify.
 
-Pentru dezvoltare și testare, PostgreSQL și [Mailpit](https://mailpit.axllent.org/) (un inbox local care prinde toate emailurile trimise de aplicație) rulează în Docker. Aplicația Laravel rulează direct pe calculator.
+**Site online:** _adaugă aici adresa din Laravel Cloud_
+
+Aplicația este publicată pe [Laravel Cloud](https://cloud.laravel.com), direct din acest repository: fiecare push pe `main` declanșează un deploy nou.
 
 ---
 
-## Cerințe
-
-| Unealtă | Versiune | Verificare |
-|---|---|---|
-| PHP | 8.3+ (cu extensia `pdo_pgsql`) | `php -v` |
-| Composer | 2.x | `composer -V` |
-| Node.js + npm | 20+ | `node -v` |
-| Docker Desktop | orice versiune recentă, **pornit** | `docker compose version` |
-
-> Pe macOS, PHP + Composer se pot instala cu o singură comandă:
-> `/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.4)"`
-> (pentru Windows/Linux vezi [php.new](https://php.new)).
-
----
-
-## Pornire rapidă
-
-```bash
-# 1. Clonează proiectul
-git clone https://github.com/mateid219/tracker-abonamente.git
-cd tracker-abonamente
-
-# 2. Pornește PostgreSQL și Mailpit
-docker compose up -d
-
-# 3. Instalează și configurează totul
-#    (pachete PHP și JS, .env, cheia aplicației, tabele, cont demo, build CSS/JS)
-composer run setup
-
-# 4. Pornește aplicația
-composer run dev
-```
-
-Apoi deschide:
-
-| Adresă | Ce este |
-|---|---|
-| http://localhost:8000 | Aplicația |
-| http://localhost:8025 | Mailpit: inbox-ul cu emailurile trimise de aplicație |
-
-`.env.example` este deja configurat pentru serviciile din Docker, deci nu trebuie modificat nimic.
-
-### Cont demo
-
-| Email | Parolă |
-|---|---|
-| `demo@example.test` | `Demo-Parola-2026` |
-
-Contul are emailul deja verificat, deci intri direct pe dashboard.
-
----
-
-## Ce poți testa
+## Testare pe site-ul online
 
 ### 1. Înregistrare și verificarea emailului
-1. Mergi la **Cont nou** și creează un cont cu orice adresă (ex. `test@example.test`). Emailurile nu pleacă în afara calculatorului.
-2. Parola trebuie să aibă minimum 10 caractere, litere mari și mici și o cifră. Lista de cerințe se bifează pe măsură ce scrii.
-3. După înregistrare apare pagina „Verifică-ți adresa de email”.
-4. Deschide **http://localhost:8025**, deschide emailul primit și apasă butonul de verificare.
-5. Ești redirecționat pe dashboard. Fără verificare, dashboard-ul și setările nu sunt accesibile.
+1. Apasă **Cont nou** și creează un cont cu o adresă de email la care ai acces.
+2. Parola trebuie să aibă minimum 10 caractere, litere mari și mici și o cifră. Lista de cerințe se bifează pe măsură ce scrii. Online, parola este verificată și în baze de date cu parole compromise, deci parolele foarte cunoscute sunt respinse.
+3. După înregistrare apare pagina „Verifică-ți adresa de email”. Deschide emailul primit și apasă butonul de verificare.
+4. Ești redirecționat pe dashboard. Fără verificare, dashboard-ul și setările nu sunt accesibile.
 
 ### 2. Resetarea parolei
 1. Ieși din cont și, pe pagina de autentificare, apasă **Ai uitat parola?**
-2. Introdu emailul contului și deschide emailul din Mailpit.
+2. Introdu emailul contului și deschide linkul primit pe email.
 3. Setează o parolă nouă și autentifică-te cu ea.
 
 ### 3. Limitarea încercărilor de autentificare
@@ -84,9 +33,76 @@ Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări,
 4. Ieși din cont și autentifică-te din nou: după parolă ți se cere codul din aplicație. Poți folosi și un cod de recuperare, fiecare funcționează o singură dată.
 
 ### 5. Profil, parolă și dispozitive conectate
-- **Setări → Profil**: schimbarea emailului cere o nouă verificare (emailul apare în Mailpit).
+- **Setări → Profil**: schimbarea emailului cere o nouă verificare.
 - **Setări → Schimbă parola**: cere parola actuală.
-- **Setări → Dispozitive conectate**: sesiunile sunt salvate în PostgreSQL. Autentifică-te din alt browser sau dintr-o fereastră privată, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt browser va fi deconectat.
+- **Setări → Dispozitive conectate**: sesiunile sunt salvate în PostgreSQL. Autentifică-te din alt browser sau de pe telefon, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt dispozitiv va fi deconectat.
+
+---
+
+## Rulare locală
+
+### Cerințe
+
+| Unealtă | Versiune | Verificare |
+|---|---|---|
+| PHP | 8.3+ (cu extensia `pdo_pgsql`) | `php -v` |
+| Composer | 2.x | `composer -V` |
+| Node.js + npm | 20+ | `node -v` |
+| PostgreSQL | 15+ | `psql --version` |
+
+> Pe macOS:
+> - PHP + Composer: `/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.4)"` (pentru Windows/Linux vezi [php.new](https://php.new))
+> - PostgreSQL: [Postgres.app](https://postgresapp.com) (după instalare apasă **Initialize**)
+
+### Instalare
+
+```bash
+# 1. Clonează proiectul
+git clone https://github.com/mateid219/tracker-abonamente.git
+cd tracker-abonamente
+
+# 2. Creează baza de date
+createdb tracker_abonamente
+
+# 3. Creează fișierul de configurare
+cp .env.example .env
+```
+
+Deschide `.env` și completează datele de conectare la PostgreSQL:
+
+```
+DB_USERNAME=   # la Postgres.app: numele utilizatorului tău de macOS
+DB_PASSWORD=   # la Postgres.app: gol
+```
+
+```bash
+# 4. Instalează și configurează totul
+#    (pachete PHP și JS, cheia aplicației, tabele, cont demo, build CSS/JS)
+composer run setup
+
+# 5. Pornește aplicația
+composer run dev
+```
+
+Aplicația pornește la **http://localhost:8000**.
+
+### Cont demo (doar local)
+
+| Email | Parolă |
+|---|---|
+| `demo@example.test` | `Demo-Parola-2026` |
+
+Contul are emailul deja verificat, deci intri direct pe dashboard.
+
+### Emailuri în dezvoltare
+
+Local, emailurile **nu se trimit**: sunt scrise în `storage/logs/laravel.log` (`MAIL_MAILER=log`). Pentru linkul de verificare sau de resetare a parolei, după ce ai cerut emailul în aplicație, rulează:
+
+```bash
+grep -oE 'http://localhost:8000/[^ "<]+' storage/logs/laravel.log | tail -1 | sed 's/&amp;/\&/g'
+```
+
+Deschide linkul afișat în același browser în care ești autentificat. Linkurile expiră după 60 de minute.
 
 ---
 
@@ -96,7 +112,27 @@ Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări,
 composer run test
 ```
 
-Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`), deci nu ating datele din PostgreSQL și nu au nevoie de Docker.
+Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`), deci nu ating datele din PostgreSQL.
+
+---
+
+## Configurare pe Laravel Cloud
+
+Setările de producție se definesc în **Laravel Cloud → Environment → Variables**, nu în `.env.example`. Baza de date PostgreSQL este oferită de Laravel Cloud.
+
+Pentru trimiterea emailurilor este nevoie de un serviciu SMTP, de exemplu Gmail cu o [parolă pentru aplicații](https://myaccount.google.com/apppasswords):
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=adresa@gmail.com
+MAIL_PASSWORD=parola-pentru-aplicatii
+MAIL_FROM_ADDRESS=adresa@gmail.com
+MAIL_FROM_NAME="Tracker Abonamente"
+```
+
+> ⚠️ Parolele și cheile se pun doar în variabilele de mediu din Laravel Cloud, niciodată în cod sau pe GitHub.
 
 ---
 
@@ -104,10 +140,8 @@ Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`),
 
 | Comandă | Ce face |
 |---|---|
-| `docker compose up -d` | Pornește PostgreSQL și Mailpit |
-| `docker compose down` | Oprește serviciile (datele rămân) |
-| `docker compose down -v` | Oprește serviciile și **șterge baza de date** |
-| `php artisan migrate:fresh --seed` | Recreează toate tabelele și contul demo |
+| `php artisan migrate` | Rulează migrările noi |
+| `php artisan migrate:fresh --seed` | Recreează toate tabelele și contul demo (**șterge datele locale**) |
 | `php artisan route:list` | Lista tuturor rutelor |
 | `php artisan db:show` | Informații despre conexiunea la baza de date |
 
@@ -115,13 +149,11 @@ Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`),
 
 ## Probleme frecvente
 
-**`Cannot connect to the Docker daemon`**: Docker Desktop nu este pornit. Deschide aplicația și așteaptă până devine activă.
+**`could not find driver`**: lipsește extensia PHP `pdo_pgsql`. Verifică cu `php -m | grep pgsql`.
 
-**`port is already allocated`**: portul 5433, 1025 sau 8025 este folosit de alt program. Oprește programul respectiv sau schimbă portul din stânga în `compose.yaml` (ex. `"127.0.0.1:5434:5432"`) și aceeași valoare în `.env` (`DB_PORT=5434`).
+**`database "tracker_abonamente" does not exist`**: rulează `createdb tracker_abonamente`.
 
-**`could not find driver` (PostgreSQL)**: lipsește extensia PHP `pdo_pgsql`. Verifică cu `php -m | grep pgsql`.
-
-**Nu apare niciun email în Mailpit**: verifică în `.env` că `MAIL_MAILER=smtp` și `MAIL_PORT=1025`, apoi rulează `php artisan config:clear`.
+**`connection refused` (port 5432)**: PostgreSQL nu rulează. Pornește Postgres.app sau serviciul PostgreSQL.
 
 **Pagina se încarcă fără stiluri**: rulează `npm run build` sau pornește aplicația cu `composer run dev` (pornește și Vite).
 
@@ -139,8 +171,3 @@ Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`),
 | `resources/js/app.js` | Alpine.js |
 | `database/migrations/` | Structura bazei de date |
 | `lang/ro/` | Traducerile în română |
-| `compose.yaml` | Serviciile Docker pentru dezvoltare |
-
----
-
-> ⚠️ Datele de conectare din `.env.example` și `compose.yaml` (`tracker` / `tracker`) și contul demo sunt **doar pentru dezvoltare locală**. Nu le folosi în producție.
