@@ -84,10 +84,10 @@ Prima pornire durează câteva minute, cât se construiesc imaginile. La pornire
 docker compose --profile tunnel up -d --build
 ```
 
-Afișează linkul public:
+Afișează linkul public (rulează comanda din folderul proiectului; așteaptă singură până apare linkul, de obicei 5–10 secunde):
 
 ```bash
-docker compose logs tunnel | grep -o 'https://.*trycloudflare.com'
+./docker/tunnel-url.sh
 ```
 
 Trimite testerilor linkul, plus utilizatorul și parola pentru `/mail`.
