@@ -13,11 +13,23 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * Demo accounts for testing (see README). Runs on every Docker start:
+     * firstOrCreate only creates missing accounts and never overwrites changes.
      */
     public function run(): void
     {
-        // Demo account for local testing (see README). Safe to run more than once.
-        User::updateOrCreate(
+        User::firstOrCreate(
+            ['email' => 'admin@example.test'],
+            [
+                'name' => 'Administrator Demo',
+                'password' => Hash::make('Admin-Parola-2026'),
+                'email_verified_at' => now(),
+                'is_admin' => true,
+            ],
+        );
+
+        User::firstOrCreate(
             ['email' => 'demo@example.test'],
             [
                 'name' => 'Utilizator Demo',

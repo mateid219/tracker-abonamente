@@ -1,10 +1,10 @@
-@props(['name', 'id' => null, 'autocomplete' => 'current-password'])
+@props(['name', 'id' => null, 'autocomplete' => 'current-password', 'required' => true])
 
 @php($id ??= $name)
 
 <div class="input-group" x-data="{ show: false }">
     <input id="{{ $id }}" name="{{ $name }}" :type="show ? 'text' : 'password'" type="password"
-           autocomplete="{{ $autocomplete }}" required {{ $attributes }}>
+           autocomplete="{{ $autocomplete }}" @required($required) {{ $attributes }}>
     <button type="button" class="btn-link" @click="show = !show"
             :aria-label="show ? 'Ascunde parola' : 'Arată parola'"
             x-text="show ? 'Ascunde' : 'Arată'">Arată</button>

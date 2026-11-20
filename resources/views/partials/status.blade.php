@@ -4,6 +4,9 @@
         'password-updated' => 'Parola a fost schimbată.',
         'verification-link-sent' => 'Am trimis un nou link de verificare pe email.',
         'other-sessions-logged-out' => 'Celelalte dispozitive au fost deconectate.',
+        'user-created' => 'Contul a fost creat.',
+        'user-updated' => 'Contul a fost actualizat.',
+        'user-deleted' => 'Contul a fost șters.',
     ];
 
     $status = session('status');

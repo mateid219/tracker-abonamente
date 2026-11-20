@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -22,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configurePasswordRules();
+
+        // Used by the `can:admin` middleware on the /admin routes and by @can('admin') in views.
+        Gate::define('admin', fn (User $user) => $user->isAdmin());
 
         // Force https only when the app's own URL is https. Behind the Cloudflare tunnel
         // the scheme comes from the trusted X-Forwarded-Proto header instead, so the same

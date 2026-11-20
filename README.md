@@ -25,11 +25,12 @@ Ai primit un link de forma `https://ceva-aleator.trycloudflare.com`, plus un uti
 2. Pentru un cont nou poți folosi **o adresă inventată** (ex. `ana@test.ro`). Emailurile nu pleacă nicăieri: ajung în inbox-ul de test.
 3. Inbox-ul este la **`<link>/mail`**. Autentifică-te cu utilizatorul și parola primite. Toți testerii văd același inbox, deci nu folosi adrese reale.
 
-**Cont demo:**
+**Conturi demo:**
 
-| Email | Parolă |
-|---|---|
-| `demo@example.test` | `Demo-Parola-2026` |
+| Rol | Email | Parolă |
+|---|---|---|
+| Administrator | `admin@example.test` | `Admin-Parola-2026` |
+| Utilizator | `demo@example.test` | `Demo-Parola-2026` |
 
 ### Ce poți testa
 
@@ -52,6 +53,14 @@ Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări,
 - **Setări → Schimbă parola**: cere parola actuală.
 - **Setări → Dispozitive conectate**: autentifică-te din alt browser sau de pe telefon, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt dispozitiv va fi deconectat.
 
+**5. Administrarea conturilor (CRUD)**
+Autentifică-te cu contul **administrator** și deschide **Administrare** din meniu.
+- **Listă**: toate conturile, cu rol și stare de verificare. Caută după nume sau email.
+- **Creare**: **Cont nou**. Poți marca emailul ca verificat sau lăsa sistemul să trimită emailul de verificare (apare în `/mail`).
+- **Editare**: nume, email, rol de administrator și starea de verificare. O parolă nouă setată de admin deconectează contul de pe toate dispozitivele.
+- **Ștergere**: cere confirmare și șterge și sesiunile active ale contului.
+- Restricții: un administrator nu își poate șterge propriul cont și nu își poate retrage propriile drepturi. Un utilizator obișnuit primește eroarea 403 pe orice pagină `/admin`.
+
 ---
 
 ## Pornire cu Docker
@@ -71,7 +80,7 @@ cd tracker-abonamente
 docker compose up -d --build
 ```
 
-Prima pornire durează câteva minute, cât se construiesc imaginile. La pornire, aplicația creează automat tabelele, contul demo și cheia de criptare.
+Prima pornire durează câteva minute, cât se construiesc imaginile. La pornire, aplicația creează automat tabelele, conturile demo (administrator și utilizator) și cheia de criptare.
 
 | Adresă | Ce este |
 |---|---|
@@ -144,6 +153,7 @@ Doar containerele modificate sunt reconstruite. Datele din baza de date se păst
 | `docker compose logs -f app` | Logurile aplicației (erori Laravel) |
 | `docker compose logs -f web` | Logurile serverului web |
 | `docker compose exec app php artisan route:list` | Rulează o comandă `artisan` în container |
+| `docker compose exec app php artisan app:make-admin email@exemplu.ro` | Face un cont administrator (`--revoke` pentru a retrage drepturile) |
 | `docker compose exec pgsql psql -U tracker tracker_abonamente` | Consola PostgreSQL |
 | `docker compose --profile tunnel down` | Oprește tot (datele rămân) |
 | `docker compose --profile tunnel down -v` | Oprește tot și **șterge toate datele** (conturi, emailuri) |
@@ -197,9 +207,10 @@ Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`) 
 | `Dockerfile` | Imaginile `app` (PHP-FPM + Laravel) și `web` (Nginx) |
 | `docker/` | Configurarea Nginx, PHP și scriptul de pornire |
 | `routes/web.php` | Rutele aplicației (rutele de autentificare sunt adăugate de Fortify) |
-| `app/Http/Controllers/` | Controllere (ex. `SettingsController`) |
+| `app/Http/Controllers/` | Controllere (`SettingsController`, `Admin/UserController` pentru CRUD-ul de conturi) |
+| `app/Policies/UserPolicy.php` | Cine are voie să administreze conturi |
 | `app/Actions/Fortify/` | Logica de creare cont, resetare și schimbare parolă |
-| `resources/views/` | View-uri Blade (`auth/`, `settings`, `dashboard`, `layouts/`) |
+| `resources/views/` | View-uri Blade (`auth/`, `admin/users/`, `settings`, `dashboard`, `layouts/`) |
 | `resources/css/app.css` | CSS vanilla |
 | `resources/js/app.js` | Alpine.js |
 | `database/migrations/` | Structura bazei de date |
@@ -207,4 +218,4 @@ Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`) 
 
 ---
 
-> ⚠️ Datele de acces din `compose.yaml` (baza de date `tracker`/`tracker`, inbox `tester`/`tester`) și contul demo sunt pentru testare. Când publici linkul, schimbă cel puțin parola inbox-ului și oprește tunelul după testare.
+> ⚠️ Datele de acces din `compose.yaml` (baza de date `tracker`/`tracker`, inbox `tester`/`tester`) și conturile demo sunt pentru testare. Contul `admin@example.test` are drepturi de administrator: schimbă-i parola (din **Setări**) dacă linkul ajunge la persoane necunoscute. Când publici linkul, schimbă cel puțin parola inbox-ului și oprește tunelul după testare.

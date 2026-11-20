@@ -20,6 +20,9 @@
                 @auth
                     <a href="{{ route('dashboard') }}" @class(['is-active' => request()->routeIs('dashboard')])>Dashboard</a>
                     <a href="{{ route('settings') }}" @class(['is-active' => request()->routeIs('settings')])>Setări</a>
+                    @can('admin')
+                        <a href="{{ route('admin.users.index') }}" @class(['is-active' => request()->routeIs('admin.*')])>Administrare</a>
+                    @endcan
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="btn-link">Ieșire</button>

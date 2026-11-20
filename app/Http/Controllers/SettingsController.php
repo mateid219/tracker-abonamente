@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\UserSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -33,18 +33,7 @@ class SettingsController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
-        $user = $request->user();
-
-        if (config('session.driver') === 'database') {
-            DB::connection(config('session.connection'))
-                ->table(config('session.table', 'sessions'))
-                ->where('user_id', $user->getAuthIdentifier())
-                ->where('id', '!=', $request->session()->getId())
-                ->delete();
-        }
-
-        $user->setRememberToken(Str::random(60));
-        $user->save();
+        UserSessions::revoke($request->user(), exceptSessionId: $request->session()->getId());
 
         return back()->with('status', 'other-sessions-logged-out');
     }
