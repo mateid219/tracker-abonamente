@@ -19,18 +19,18 @@ test('profile information can be updated', function () {
 
     $this->actingAs($user)
         ->from(route('settings'))
-        ->put(route('user-profile-information.update'), ['name' => 'Nume Nou', 'email' => $user->email])
+        ->put(route('user-profile-information.update'), ['last_name' => 'Popescu', 'first_name' => 'Ana', 'email' => $user->email])
         ->assertRedirect(route('settings'))
         ->assertSessionHas('status', 'profile-information-updated');
 
-    expect($user->fresh()->name)->toBe('Nume Nou');
+    expect($user->fresh())->last_name->toBe('Popescu')->first_name->toBe('Ana');
 });
 
 test('changing the email requires verifying it again', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->put(route('user-profile-information.update'), ['name' => $user->name, 'email' => 'nou@example.com']);
+        ->put(route('user-profile-information.update'), ['last_name' => $user->last_name, 'first_name' => $user->first_name, 'email' => 'nou@example.com']);
 
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });

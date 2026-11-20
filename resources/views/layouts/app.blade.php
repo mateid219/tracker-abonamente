@@ -4,6 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+        {{-- WebSockets (resources/js/echo.js, realtime.js) --}}
+        @if (config('broadcasting.default') === 'reverb' && config('broadcasting.connections.reverb.key'))
+            <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
+            @foreach (['host', 'port', 'scheme'] as $option)
+                @if (filled(config("broadcasting.connections.reverb.client.$option")))
+                    <meta name="reverb-{{ $option }}" content="{{ config("broadcasting.connections.reverb.client.$option") }}">
+                @endif
+            @endforeach
+        @endif
+        <meta name="user-id" content="{{ auth()->id() }}">
+        <meta name="user-is-admin" content="{{ auth()->user()->isAdmin() ? '1' : '0' }}">
+        <meta name="session-hash" content="{{ \App\Support\Realtime::sessionHash(session()->getId()) }}">
+    @endauth
     <title>@yield('title', config('app.name'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

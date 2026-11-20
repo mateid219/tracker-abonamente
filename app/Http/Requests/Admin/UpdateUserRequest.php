@@ -28,7 +28,8 @@ class UpdateUserRequest extends FormRequest
         $user = $this->route('user');
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user)],
             // Optional: leave empty to keep the current password.
             'password' => ['nullable', 'string', Password::defaults(), 'confirmed'],
@@ -43,7 +44,8 @@ class UpdateUserRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'nume',
+            'last_name' => 'nume',
+            'first_name' => 'prenume',
             'email' => 'email',
             'password' => 'parolă',
         ];

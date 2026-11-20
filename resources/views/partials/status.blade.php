@@ -6,7 +6,11 @@
         'other-sessions-logged-out' => 'Celelalte dispozitive au fost deconectate.',
         'user-created' => 'Contul a fost creat.',
         'user-updated' => 'Contul a fost actualizat.',
-        'user-deleted' => 'Contul a fost șters.',
+        'user-deleted' => 'Contul a fost șters. Îl poți restaura din lista „Șterse”.',
+        'user-restored' => 'Contul a fost restaurat.',
+        'subscription-created' => 'Abonamentul a fost adăugat.',
+        'subscription-updated' => 'Abonamentul a fost actualizat.',
+        'subscription-deleted' => 'Abonamentul a fost șters.',
     ];
 
     $status = session('status');

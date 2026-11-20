@@ -1,10 +1,18 @@
 {{-- Shared fields for create and edit. Expects: $user (User), $isEdit (bool) --}}
 @php($isSelf = $user->exists && $user->is(auth()->user()))
 
-<div class="field">
-    <label for="name">Nume</label>
-    <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" required autofocus autocomplete="off">
-    @error('name') <p class="error">{{ $message }}</p> @enderror
+<div class="field-pair">
+    <div class="field">
+        <label for="last_name">Nume</label>
+        <input id="last_name" type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}" maxlength="100" required autofocus autocomplete="off">
+        @error('last_name') <p class="error">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="field">
+        <label for="first_name">Prenume</label>
+        <input id="first_name" type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}" maxlength="100" required autocomplete="off">
+        @error('first_name') <p class="error">{{ $message }}</p> @enderror
+    </div>
 </div>
 
 <div class="field">

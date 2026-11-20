@@ -54,5 +54,5 @@ test('guests are redirected to login from protected pages', function (string $ro
 test('authenticated users can visit the dashboard', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->get(route('dashboard'))->assertOk()->assertSee($user->name);
+    $this->actingAs($user)->get(route('dashboard'))->assertOk()->assertSee($user->first_name);
 });

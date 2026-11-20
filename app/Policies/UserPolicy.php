@@ -34,4 +34,9 @@ class UserPolicy
     {
         return ! $actor->is($target);
     }
+
+    public function restore(User $actor, User $target): bool
+    {
+        return $target->trashed();
+    }
 }

@@ -1,6 +1,8 @@
 # Tracker Abonamente: full stack in Docker.
 #
 #   docker compose up -d --build                      start (http://localhost:8080)
+#
+# Services: web (Nginx), app (Laravel), queue, reverb (WebSockets), pgsql, mailpit, tunnel.
 #   docker compose --profile tunnel up -d --build     start + public HTTPS link via Cloudflare
 #   docker compose down                               stop (data is kept)
 #   docker compose down -v                            stop and delete all data
@@ -41,6 +43,17 @@ x-app: &app
     MAIL_PORT: "1025"
     MAIL_FROM_ADDRESS: no-reply@tracker-abonamente.test
     MAIL_FROM_NAME: "Tracker Abonamente"
+    # WebSockets (Laravel Reverb). The server publishes events to the "reverb" container
+    # over the internal Docker network; browsers connect through Nginx (/app/*).
+    BROADCAST_CONNECTION: reverb
+    REVERB_APP_ID: ${REVERB_APP_ID:-100001}
+    REVERB_APP_KEY: ${REVERB_APP_KEY:-tracker-abonamente-key}
+    REVERB_APP_SECRET: ${REVERB_APP_SECRET:-tracker-abonamente-secret}
+    REVERB_HOST: reverb
+    REVERB_PORT: "8080"
+    REVERB_SCHEME: http
+    REVERB_SERVER_HOST: 0.0.0.0
+    REVERB_SERVER_PORT: "8080"
 
 services:
   # Nginx: entry point for browsers (and for the Cloudflare tunnel)
@@ -54,6 +67,7 @@ services:
       - "127.0.0.1:${APP_PORT:-8080}:80"
     depends_on:
       - app
+      - reverb
       - mailpit
 
   # Laravel (PHP-FPM). Runs migrations and seeds the demo account on start.
@@ -75,6 +89,17 @@ services:
     environment:
       <<: *app-env
       CONTAINER_ROLE: queue
+    depends_on:
+      - app
+
+  # WebSocket server (Laravel Reverb): live updates between open browser windows.
+  # Not published on any port: browsers reach it only through Nginx at /app/*.
+  reverb:
+    <<: *app
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    environment:
+      <<: *app-env
+      CONTAINER_ROLE: reverb
     depends_on:
       - app
 

@@ -25,11 +25,11 @@
 @can('delete', $user)
     <div class="card form-card danger-zone">
         <h2>Șterge contul</h2>
-        <p class="muted">Contul și sesiunile lui active sunt șterse definitiv.</p>
+        <p class="muted">Contul este dezactivat (soft delete): nu se mai poate autentifica și este deconectat imediat de pe toate dispozitivele. Îl poți restaura oricând din lista „Șterse”.</p>
 
         <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
               x-data
-              @submit="if (! confirm(@js('Ștergi definitiv contul '.$user->email.'? Acțiunea nu poate fi anulată.'))) $event.preventDefault()">
+              @submit="if (! confirm(@js('Ștergi contul '.$user->email.'? Contul nu se mai poate autentifica, dar poate fi restaurat din lista „Șterse”.'))) $event.preventDefault()">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger">Șterge contul</button>

@@ -43,26 +43,26 @@ test('the admin link is only shown to admins', function () {
 
 test('admins see the list of users', function () {
     $admin = User::factory()->admin()->create();
-    $user = User::factory()->create(['name' => 'Ana Popescu', 'email' => 'ana@example.test']);
+    $user = User::factory()->create(['last_name' => 'Popescu', 'first_name' => 'Ana', 'email' => 'ana@example.test']);
 
     $this->actingAs($admin)->get(route('admin.users.index'))
         ->assertOk()
-        ->assertSee('Ana Popescu')
+        ->assertSee('Popescu')
         ->assertSee('ana@example.test');
 });
 
 test('admins can search users by name or email', function () {
     $admin = User::factory()->admin()->create();
-    User::factory()->create(['name' => 'Ana Popescu', 'email' => 'ana@example.test']);
-    User::factory()->create(['name' => 'Ion Ionescu', 'email' => 'ion@example.test']);
+    User::factory()->create(['last_name' => 'Popescu', 'first_name' => 'Ana', 'email' => 'ana@example.test']);
+    User::factory()->create(['last_name' => 'Ionescu', 'first_name' => 'Ion', 'email' => 'ion@example.test']);
 
     $this->actingAs($admin)->get(route('admin.users.index', ['search' => 'popescu']))
-        ->assertSee('Ana Popescu')
-        ->assertDontSee('Ion Ionescu');
+        ->assertSee('Popescu')
+        ->assertDontSee('Ionescu');
 
     $this->actingAs($admin)->get(route('admin.users.index', ['search' => 'ion@']))
-        ->assertSee('Ion Ionescu')
-        ->assertDontSee('Ana Popescu');
+        ->assertSee('Ionescu')
+        ->assertDontSee('Popescu');
 });
 
 // --- Create --------------------------------------------------------------------
@@ -72,7 +72,8 @@ test('admins can create a verified user', function () {
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)->post(route('admin.users.store'), [
-        'name' => 'Cont Nou',
+        'last_name' => 'Nou',
+        'first_name' => 'Cont',
         'email' => 'Nou@Example.TEST',
         'password' => 'Parola-Sigura-123',
         'password_confirmation' => 'Parola-Sigura-123',
@@ -94,7 +95,8 @@ test('an unverified user created by an admin receives a verification email', fun
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)->post(route('admin.users.store'), [
-        'name' => 'Cont Nou',
+        'last_name' => 'Nou',
+        'first_name' => 'Cont',
         'email' => 'nou@example.test',
         'password' => 'Parola-Sigura-123',
         'password_confirmation' => 'Parola-Sigura-123',
@@ -113,13 +115,15 @@ test('creating a user validates the input', function (array $data, string $field
     User::factory()->create(['email' => 'existent@example.test']);
 
     $this->actingAs($admin)->post(route('admin.users.store'), array_merge([
-        'name' => 'Cont Nou',
+        'last_name' => 'Nou',
+        'first_name' => 'Cont',
         'email' => 'nou@example.test',
         'password' => 'Parola-Sigura-123',
         'password_confirmation' => 'Parola-Sigura-123',
     ], $data))->assertSessionHasErrors($field);
 })->with([
-    'missing name' => [['name' => ''], 'name'],
+    'missing last name' => [['last_name' => ''], 'last_name'],
+    'missing first name' => [['first_name' => ''], 'first_name'],
     'invalid email' => [['email' => 'nu-e-email'], 'email'],
     'duplicate email' => [['email' => 'Existent@example.test'], 'email'],
     'weak password' => [['password' => 'slaba', 'password_confirmation' => 'slaba'], 'password'],
@@ -134,7 +138,8 @@ test('admins can update a user without changing the password', function () {
     $oldHash = $user->password;
 
     $this->actingAs($admin)->put(route('admin.users.update', $user), [
-        'name' => 'Nume Schimbat',
+        'last_name' => 'Schimbat',
+        'first_name' => 'Nume',
         'email' => 'schimbat@example.test',
         'password' => '',
         'password_confirmation' => '',
@@ -143,7 +148,8 @@ test('admins can update a user without changing the password', function () {
     ])->assertRedirect(route('admin.users.index'))->assertSessionHas('status', 'user-updated');
 
     $user->refresh();
-    expect($user->name)->toBe('Nume Schimbat')
+    expect($user->last_name)->toBe('Schimbat')
+        ->and($user->first_name)->toBe('Nume')
         ->and($user->email)->toBe('schimbat@example.test')
         ->and($user->is_admin)->toBeTrue()
         ->and($user->password)->toBe($oldHash);
@@ -157,7 +163,8 @@ test('setting a new password signs the user out of all devices', function () {
     $rememberToken = $user->remember_token;
 
     $this->actingAs($admin)->put(route('admin.users.update', $user), [
-        'name' => $user->name,
+        'last_name' => $user->last_name,
+        'first_name' => $user->first_name,
         'email' => $user->email,
         'password' => 'Parola-Noua-456',
         'password_confirmation' => 'Parola-Noua-456',
@@ -175,7 +182,8 @@ test('unchecking email verified requires the user to verify again', function () 
     $user = User::factory()->create();
 
     $this->actingAs($admin)->put(route('admin.users.update', $user), [
-        'name' => $user->name,
+        'last_name' => $user->last_name,
+        'first_name' => $user->first_name,
         'email' => $user->email,
         'email_verified' => '0',
     ]);
@@ -187,7 +195,8 @@ test('admins cannot remove their own admin rights', function () {
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)->put(route('admin.users.update', $admin), [
-        'name' => $admin->name,
+        'last_name' => $admin->last_name,
+        'first_name' => $admin->first_name,
         'email' => $admin->email,
         'email_verified' => '1',
         'is_admin' => '0',
@@ -202,7 +211,8 @@ test('updating checks that the email stays unique', function () {
     User::factory()->create(['email' => 'ocupat@example.test']);
 
     $this->actingAs($admin)->put(route('admin.users.update', $user), [
-        'name' => $user->name,
+        'last_name' => $user->last_name,
+        'first_name' => $user->first_name,
         'email' => 'ocupat@example.test',
     ])->assertSessionHasErrors('email');
 });
@@ -243,4 +253,71 @@ test('the make-admin command grants and revokes admin rights', function () {
     expect($user->fresh()->is_admin)->toBeFalse();
 
     $this->artisan('app:make-admin', ['email' => 'lipsa@example.test'])->assertFailed();
+});
+
+// --- Soft delete ---------------------------------------------------------------
+
+test('deleting an account is a soft delete', function () {
+    $admin = User::factory()->admin()->create();
+    $user = User::factory()->create();
+
+    $this->actingAs($admin)->delete(route('admin.users.destroy', $user));
+
+    $this->assertSoftDeleted($user);
+    expect(User::withTrashed()->find($user->id))->not->toBeNull();
+});
+
+test('a soft-deleted account cannot sign in', function () {
+    $user = User::factory()->create();
+    $user->delete();
+
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+test('deleted accounts are listed separately and can be restored', function () {
+    $admin = User::factory()->admin()->create();
+    $user = User::factory()->create(['last_name' => 'Sters', 'first_name' => 'Cont']);
+    $user->delete();
+
+    $this->actingAs($admin)->get(route('admin.users.index'))->assertDontSee('Sters');
+    $this->actingAs($admin)->get(route('admin.users.index', ['status' => 'deleted']))
+        ->assertSee('Sters')->assertSee('Restaurează');
+
+    $this->actingAs($admin)->patch(route('admin.users.restore', $user))
+        ->assertSessionHas('status', 'user-restored');
+
+    expect($user->fresh()->trashed())->toBeFalse();
+});
+
+test('regular users cannot restore accounts', function () {
+    $user = User::factory()->create();
+    $deleted = User::factory()->create();
+    $deleted->delete();
+
+    $this->actingAs($user)->patch(route('admin.users.restore', $deleted))->assertForbidden();
+
+    expect($deleted->fresh()->trashed())->toBeTrue();
+});
+
+test('the email of a deleted account stays reserved', function () {
+    $user = User::factory()->create(['email' => 'rezervat@example.test']);
+    $user->delete();
+
+    $this->post(route('register'), [
+        'last_name' => 'Nou', 'first_name' => 'Cont', 'email' => 'rezervat@example.test',
+        'password' => 'Parola-Sigura-123', 'password_confirmation' => 'Parola-Sigura-123',
+    ])->assertSessionHasErrors('email');
+});
+
+test('a user\'s subscriptions are kept when the account is soft deleted', function () {
+    $admin = User::factory()->admin()->create();
+    $user = User::factory()->create();
+    \App\Models\Subscription::factory()->for($user)->count(2)->create();
+
+    $this->actingAs($admin)->delete(route('admin.users.destroy', $user));
+
+    expect(\App\Models\Subscription::where('user_id', $user->id)->count())->toBe(2);
 });

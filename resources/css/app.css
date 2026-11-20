@@ -237,3 +237,95 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
     .table th, .table td { padding: .6rem .75rem; }
     .table-actions { flex-direction: column; align-items: flex-end; }
 }
+
+/* ==========================================================================
+   Forms: two fields side by side (Nume / Prenume)
+   ========================================================================== */
+.field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space); }
+@media (max-width: 480px) { .field-pair { grid-template-columns: 1fr; } }
+
+.field select {
+    width: 100%; padding: .55rem .75rem; border: 1px solid var(--color-border); border-radius: var(--radius);
+    background: var(--color-surface); color: var(--color-text); font: inherit;
+}
+.field select:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; border-color: transparent; }
+
+.alert-error { background: color-mix(in srgb, var(--color-danger) 12%, transparent); color: var(--color-danger); }
+.alert-info { background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-text); }
+
+/* ==========================================================================
+   Dashboard
+   ========================================================================== */
+.section-header { display: flex; justify-content: space-between; align-items: center; gap: var(--space); }
+.section-header h2 { margin-bottom: 0; }
+
+.total-card { text-align: center; padding-block: calc(var(--space) * 1.5); }
+.total-label { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--color-muted); }
+.total-value { font-size: 2.5rem; font-weight: 700; line-height: 1.2; margin: .25rem 0; font-variant-numeric: tabular-nums; }
+.total-currency { font-size: 1.25rem; font-weight: 500; color: var(--color-muted); }
+
+.add-form { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0 var(--space); align-items: start; margin-top: var(--space); }
+.add-form .field { margin-bottom: 0; }
+.add-form-submit { padding-top: 1.75rem; }
+.add-form-submit .btn { margin-top: 0; }
+@media (max-width: 700px) {
+    .add-form { grid-template-columns: 1fr 1fr; gap: var(--space); }
+    .add-form .field:first-child { grid-column: 1 / -1; }
+    .add-form-submit { grid-column: 1 / -1; padding-top: 0; }
+    .add-form-submit .btn { width: 100%; }
+}
+
+.list-card { padding: 0; }
+.list-title { padding: var(--space) calc(var(--space) * 1.5); margin: 0; border-bottom: 1px solid var(--color-border); }
+
+.subscription-list { list-style: none; padding: 0; }
+.subscription {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: var(--space);
+    padding: .85rem calc(var(--space) * 1.5); border-bottom: 1px solid var(--color-border);
+    transition: opacity .2s;
+}
+.subscription:last-child { border-bottom: 0; }
+.subscription-main { display: flex; flex-direction: column; min-width: 0; }
+.subscription-name { font-weight: 600; overflow-wrap: anywhere; }
+.subscription-cost { color: var(--color-muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.subscription.is-paused .subscription-name,
+.subscription.is-paused .subscription-cost { opacity: .55; }
+.subscription.is-paused .subscription-name { text-decoration: line-through; }
+.subscription-actions { display: flex; gap: .5rem; }
+.subscription-actions .btn { margin-top: 0; }
+@media (max-width: 560px) {
+    .subscription { grid-template-columns: 1fr auto; }
+    .subscription-actions { grid-column: 1 / -1; justify-content: flex-end; }
+}
+
+/* Activ / Pauză switch (a real checkbox, styled) */
+.switch { display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; user-select: none; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch-track {
+    position: relative; width: 2.6rem; height: 1.5rem; border-radius: 999px;
+    background: var(--color-border); transition: background .15s;
+}
+.switch-track::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: calc(1.5rem - 6px); height: calc(1.5rem - 6px);
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: transform .15s;
+}
+.switch input:checked + .switch-track { background: var(--color-success); }
+.switch input:checked + .switch-track::after { transform: translateX(1.1rem); }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.switch input:disabled + .switch-track { opacity: .5; cursor: wait; }
+.switch-label { font-size: .85rem; min-width: 3rem; color: var(--color-muted); }
+
+/* "Live" indicator: WebSocket connection state */
+.live-indicator { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--color-muted); }
+.live-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--color-muted); }
+.live-indicator.is-connected .live-dot { background: var(--color-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 25%, transparent); }
+.live-indicator.is-connected { color: var(--color-success); }
+
+/* ==========================================================================
+   Admin: Active / Șterse tabs
+   ========================================================================== */
+.tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--color-border); margin-bottom: var(--space); }
+.tab { padding: .5rem 1rem; text-decoration: none; color: var(--color-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--color-text); }
+.tab.is-active { color: var(--color-text); border-bottom-color: var(--color-primary); font-weight: 500; }
+.tab-count { display: inline-block; margin-left: .3rem; padding: 0 .45rem; border-radius: 999px; font-size: .75rem; background: var(--color-bg); border: 1px solid var(--color-border); }

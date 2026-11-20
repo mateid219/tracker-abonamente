@@ -2,13 +2,15 @@
 
 namespace App\Support;
 
+use App\Events\SessionsRevoked;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
  * Signs a user out of their devices: deletes their rows from the database `sessions`
- * table and rotates the remember-me token so "remember me" cookies stop working.
+ * table, rotates the remember-me token so "remember me" cookies stop working and tells
+ * open pages (WebSockets) to reload, which sends them to the login page.
  */
 class UserSessions
 {
@@ -23,6 +25,8 @@ class UserSessions
         }
 
         $user->setRememberToken(Str::random(60));
-        $user->save();
+        $user->saveQuietly();
+
+        Realtime::broadcast(new SessionsRevoked($user->id, Realtime::sessionHash($exceptSessionId)));
     }
 }

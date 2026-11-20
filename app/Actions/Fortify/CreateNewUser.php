@@ -22,20 +22,29 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        // Fortify lowercases emails at login, so store them lowercase too.
+        $input['email'] = mb_strtolower(trim((string) ($input['email'] ?? '')));
+
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100'],
             'email' => [
                 'required',
                 'string',
                 'email',
                 'max:255',
+                // Also checks soft-deleted accounts: their email stays reserved until restored.
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+        ], [], [
+            'last_name' => 'nume',
+            'first_name' => 'prenume',
         ])->validate();
 
         return User::create([
-            'name' => $input['name'],
+            'last_name' => $input['last_name'],
+            'first_name' => $input['first_name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
         ]);
