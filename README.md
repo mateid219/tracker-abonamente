@@ -28,12 +28,10 @@ docker compose --profile tunnel up -d --build
 |---|---|
 | `web` | Nginx: primește cererile din browser, servește CSS/JS și le trimite mai departe la `app`, `reverb` (`/app/*`) și `mailpit` (`/mail`). Singurul expus, pe portul 8080. |
 | `app` | Laravel (PHP-FPM): logica aplicației. La pornire rulează migrările și creează conturile demo. |
-| `queue` | Worker Laravel pentru joburile rulate în fundal. |
 | `reverb` | Serverul WebSocket (Laravel Reverb): actualizări instant între ferestrele deschise. |
 | `pgsql` | Baza de date PostgreSQL. Datele se păstrează în volumul `pgsql-data`. |
 | `mailpit` | Prinde toate emailurile trimise de aplicație și le afișează într-un inbox web. |
-| `tunnel` | Cloudflare Tunnel: link public HTTPS pentru testeri (adresă aleatorie). Pornește doar cu `--profile tunnel`. |
-| `tunnel-named` | Opțional: același tunel, dar cu adresă fixă pe un domeniu propriu. Necesită `CLOUDFLARE_TUNNEL_TOKEN` în `.env` și `--profile tunnel-named`. |
+| `tunnel` | Cloudflare Tunnel: link public HTTPS pentru testeri. Pornește doar cu `--profile tunnel`. |
 
 ## Emailuri (Mailpit)
 

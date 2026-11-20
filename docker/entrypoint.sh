@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs before every app/queue container start.
+# Runs before every app/reverb container start.
 #  - creates (once) and loads the application key
 #  - on the "app" container: waits for PostgreSQL, runs migrations and seeds the demo account
 #  - caches config/routes/views for speed
@@ -37,7 +37,7 @@ as_www php artisan route:cache --no-interaction
 as_www php artisan view:cache --no-interaction
 
 # php-fpm starts as root and runs its workers as www-data;
-# everything else (queue worker, artisan commands) runs as www-data.
+# everything else (Reverb, artisan commands) runs as www-data.
 if [ "$1" = "php-fpm" ]; then
     exec "$@"
 fi

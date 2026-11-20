@@ -1,13 +1,11 @@
 # Tracker Abonamente: full stack in Docker.
 #
-#   docker compose up -d --build                      start (http://localhost:8080)
+#   docker compose up -d --build                    start (http://localhost:8080)
+#   docker compose --profile tunnel up -d --build   start + public HTTPS link via Cloudflare
+#   docker compose down                             stop (data is kept)
+#   docker compose down -v                          stop and delete all data
 #
-# Services: web (Nginx), app (Laravel), queue, reverb (WebSockets), pgsql, mailpit, tunnel.
-#   docker compose --profile tunnel up -d --build     start + public HTTPS link via Cloudflare
-#   docker compose down                               stop (data is kept)
-#   docker compose down -v                            stop and delete all data
-#
-# See README.md for details.
+# Only values that differ from Laravel's defaults are set here.
 
 name: tracker-abonamente
 
@@ -18,45 +16,32 @@ x-app: &app
   image: tracker-abonamente-app
   restart: unless-stopped
   volumes:
-    - storage:/var/www/html/storage
+    - storage:/var/www/html/storage   # application key, generated on first start
   environment: &app-env
     APP_NAME: "Tracker Abonamente"
-    APP_ENV: production
-    APP_DEBUG: "false"
-    APP_URL: http://localhost:${APP_PORT:-8080}
+    APP_URL: http://localhost:8080
     APP_LOCALE: ro
-    APP_FALLBACK_LOCALE: en
-    LOG_CHANNEL: stderr
-    LOG_LEVEL: info
+    LOG_CHANNEL: stderr               # logs visible with: docker compose logs app
     DB_CONNECTION: pgsql
     DB_HOST: pgsql
-    DB_PORT: "5432"
     DB_DATABASE: tracker_abonamente
     DB_USERNAME: tracker
     DB_PASSWORD: tracker
-    SESSION_DRIVER: database
     SESSION_ENCRYPT: "true"
-    CACHE_STORE: database
-    QUEUE_CONNECTION: database
+    QUEUE_CONNECTION: sync            # nothing runs in the background, no worker needed
     MAIL_MAILER: smtp
     MAIL_HOST: mailpit
     MAIL_PORT: "1025"
-    MAIL_FROM_ADDRESS: no-reply@tracker-abonamente.test
-    MAIL_FROM_NAME: "Tracker Abonamente"
-    # WebSockets (Laravel Reverb). The server publishes events to the "reverb" container
-    # over the internal Docker network; browsers connect through Nginx (/app/*).
     BROADCAST_CONNECTION: reverb
-    REVERB_APP_ID: ${REVERB_APP_ID:-100001}
-    REVERB_APP_KEY: ${REVERB_APP_KEY:-tracker-abonamente-key}
-    REVERB_APP_SECRET: ${REVERB_APP_SECRET:-tracker-abonamente-secret}
+    REVERB_APP_ID: "100001"
+    REVERB_APP_KEY: tracker-abonamente-key
+    REVERB_APP_SECRET: tracker-abonamente-secret
     REVERB_HOST: reverb
     REVERB_PORT: "8080"
     REVERB_SCHEME: http
-    REVERB_SERVER_HOST: 0.0.0.0
-    REVERB_SERVER_PORT: "8080"
 
 services:
-  # Nginx: entry point for browsers (and for the Cloudflare tunnel)
+  # Nginx: the only entry point (port 8080). Forwards /app/* to reverb and /mail to mailpit.
   web:
     build:
       context: .
@@ -64,42 +49,25 @@ services:
     image: tracker-abonamente-web
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${APP_PORT:-8080}:80"
+      - "127.0.0.1:8080:80"
     depends_on:
       - app
       - reverb
       - mailpit
 
-  # Laravel (PHP-FPM). Runs migrations and seeds the demo account on start.
+  # Laravel (PHP-FPM). On start: waits for the database, runs migrations, seeds demo accounts.
   app:
     <<: *app
     environment:
       <<: *app-env
       CONTAINER_ROLE: app
     depends_on:
-      pgsql:
-        condition: service_healthy
-      mailpit:
-        condition: service_started
-
-  # Background jobs (queued mail, broadcasting, ...)
-  queue:
-    <<: *app
-    command: ["php", "artisan", "queue:work", "--tries=3", "--sleep=3"]
-    environment:
-      <<: *app-env
-      CONTAINER_ROLE: queue
-    depends_on:
-      - app
+      - pgsql
 
   # WebSocket server (Laravel Reverb): live updates between open browser windows.
-  # Not published on any port: browsers reach it only through Nginx at /app/*.
   reverb:
     <<: *app
-    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
-    environment:
-      <<: *app-env
-      CONTAINER_ROLE: reverb
+    command: ["php", "artisan", "reverb:start"]
     depends_on:
       - app
 
@@ -112,11 +80,6 @@ services:
       POSTGRES_PASSWORD: tracker
     volumes:
       - pgsql-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tracker -d tracker_abonamente"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
   # Catches every email the app sends. Inbox: <app address>/mail
   mailpit:
@@ -124,10 +87,9 @@ services:
     restart: unless-stopped
     environment:
       MP_WEBROOT: /mail
-      MP_UI_AUTH: "${MAILPIT_USER:-tester}:${MAILPIT_PASSWORD:-tester}"
-      MP_MAX_MESSAGES: 500
+      MP_UI_AUTH: "tester:${MAILPIT_PASSWORD:-tester}"
 
-  # Public HTTPS link without opening ports: a random *.trycloudflare.com address.
+  # Public HTTPS link (random *.trycloudflare.com address), no open ports needed.
   # Started only with: docker compose --profile tunnel up -d
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -136,18 +98,6 @@ services:
     depends_on:
       - web
     profiles: ["tunnel"]
-
-  # Same, but with a fixed address on your own Cloudflare domain (see README).
-  # Started only with: docker compose --profile tunnel-named up -d
-  tunnel-named:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: ["tunnel", "--no-autoupdate", "run"]
-    environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
-    depends_on:
-      - web
-    profiles: ["tunnel-named"]
 
 volumes:
   storage:
