@@ -13,7 +13,7 @@ docker compose up -d --build
 ```
 
 - Aplicația: http://localhost:8080
-- Emailuri: http://localhost:8080/mail (`tester` / `tester`)
+- Emailuri (Mailpit): http://localhost:8080/mail
 
 Link public pentru testeri:
 
@@ -21,6 +21,29 @@ Link public pentru testeri:
 docker compose --profile tunnel up -d --build
 ./docker/tunnel-url.sh
 ```
+
+## Containere
+
+| Container | Ce face |
+|---|---|
+| `web` | Nginx: primește cererile din browser, servește CSS/JS și le trimite mai departe la `app`, `reverb` (`/app/*`) și `mailpit` (`/mail`). Singurul expus, pe portul 8080. |
+| `app` | Laravel (PHP-FPM): logica aplicației. La pornire rulează migrările și creează conturile demo. |
+| `queue` | Worker Laravel pentru joburile rulate în fundal. |
+| `reverb` | Serverul WebSocket (Laravel Reverb): actualizări instant între ferestrele deschise. |
+| `pgsql` | Baza de date PostgreSQL. Datele se păstrează în volumul `pgsql-data`. |
+| `mailpit` | Prinde toate emailurile trimise de aplicație și le afișează într-un inbox web. |
+| `tunnel` | Cloudflare Tunnel: link public HTTPS pentru testeri (adresă aleatorie). Pornește doar cu `--profile tunnel`. |
+| `tunnel-named` | Opțional: același tunel, dar cu adresă fixă pe un domeniu propriu. Necesită `CLOUDFLARE_TUNNEL_TOKEN` în `.env` și `--profile tunnel-named`. |
+
+## Emailuri (Mailpit)
+
+Aplicația nu trimite emailuri reale: verificarea contului și resetarea parolei ajung în Mailpit.
+
+1. Deschide http://localhost:8080/mail (sau `<link public>/mail`).
+2. Autentifică-te cu `tester` / `tester` (datele inbox-ului, nu ale unui cont din aplicație).
+3. Deschide emailul și apasă butonul din el.
+
+Toți testerii văd același inbox, deci folosiți adrese inventate (ex. `ana@test.ro`). Pentru altă parolă a inbox-ului, adaugă în `.env` `MAILPIT_PASSWORD=parola-ta` și repornește cu `docker compose up -d`.
 
 ## Conturi demo
 
