@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Behind Nginx / the Cloudflare tunnel (private Docker network):
+        // trust their X-Forwarded-* headers so URLs use https and the real client IP.
+        $middleware->trustProxies(at: [
+            '127.0.0.1',
+            '10.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

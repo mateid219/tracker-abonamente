@@ -23,7 +23,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configurePasswordRules();
 
-        if ($this->app->isProduction()) {
+        // Force https only when the app's own URL is https. Behind the Cloudflare tunnel
+        // the scheme comes from the trusted X-Forwarded-Proto header instead, so the same
+        // container also works on http://localhost.
+        if ($this->app->isProduction() && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
     }

@@ -1,0 +1,129 @@
+# Tracker Abonamente: full stack in Docker.
+#
+#   docker compose up -d --build                      start (http://localhost:8080)
+#   docker compose --profile tunnel up -d --build     start + public HTTPS link via Cloudflare
+#   docker compose down                               stop (data is kept)
+#   docker compose down -v                            stop and delete all data
+#
+# See README.md for details.
+
+name: tracker-abonamente
+
+x-app: &app
+  build:
+    context: .
+    target: app
+  image: tracker-abonamente-app
+  restart: unless-stopped
+  volumes:
+    - storage:/var/www/html/storage
+  environment: &app-env
+    APP_NAME: "Tracker Abonamente"
+    APP_ENV: production
+    APP_DEBUG: "false"
+    APP_URL: http://localhost:${APP_PORT:-8080}
+    APP_LOCALE: ro
+    APP_FALLBACK_LOCALE: en
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: info
+    DB_CONNECTION: pgsql
+    DB_HOST: pgsql
+    DB_PORT: "5432"
+    DB_DATABASE: tracker_abonamente
+    DB_USERNAME: tracker
+    DB_PASSWORD: tracker
+    SESSION_DRIVER: database
+    SESSION_ENCRYPT: "true"
+    CACHE_STORE: database
+    QUEUE_CONNECTION: database
+    MAIL_MAILER: smtp
+    MAIL_HOST: mailpit
+    MAIL_PORT: "1025"
+    MAIL_FROM_ADDRESS: no-reply@tracker-abonamente.test
+    MAIL_FROM_NAME: "Tracker Abonamente"
+
+services:
+  # Nginx: entry point for browsers (and for the Cloudflare tunnel)
+  web:
+    build:
+      context: .
+      target: web
+    image: tracker-abonamente-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:80"
+    depends_on:
+      - app
+      - mailpit
+
+  # Laravel (PHP-FPM). Runs migrations and seeds the demo account on start.
+  app:
+    <<: *app
+    environment:
+      <<: *app-env
+      CONTAINER_ROLE: app
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  # Background jobs (queued mail, broadcasting, ...)
+  queue:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--tries=3", "--sleep=3"]
+    environment:
+      <<: *app-env
+      CONTAINER_ROLE: queue
+    depends_on:
+      - app
+
+  pgsql:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tracker_abonamente
+      POSTGRES_USER: tracker
+      POSTGRES_PASSWORD: tracker
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracker -d tracker_abonamente"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Catches every email the app sends. Inbox: <app address>/mail
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    environment:
+      MP_WEBROOT: /mail
+      MP_UI_AUTH: "${MAILPIT_USER:-tester}:${MAILPIT_PASSWORD:-tester}"
+      MP_MAX_MESSAGES: 500
+
+  # Public HTTPS link without opening ports: a random *.trycloudflare.com address.
+  # Started only with: docker compose --profile tunnel up -d
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "--url", "http://web:80"]
+    depends_on:
+      - web
+    profiles: ["tunnel"]
+
+  # Same, but with a fixed address on your own Cloudflare domain (see README).
+  # Started only with: docker compose --profile tunnel-named up -d
+  tunnel-named:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - web
+    profiles: ["tunnel-named"]
+
+volumes:
+  storage:
+  pgsql-data:

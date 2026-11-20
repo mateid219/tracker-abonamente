@@ -4,152 +4,188 @@ Aplicație web pentru evidența abonamentelor personale.
 
 **Stack:** Laravel 13 · PostgreSQL · Blade + Alpine.js (fără Livewire) · CSS vanilla (fără Tailwind/Bootstrap) · autentificare cu Laravel Fortify.
 
-**Site online:** https://tracker-abonamente-production-ywyctg.laravel.cloud
+Toată aplicația rulează local, în Docker: server web, Laravel, baza de date, procesarea joburilor și un inbox pentru emailuri. Pentru testerii de la distanță, aplicația primește un link public HTTPS printr-un tunel Cloudflare, fără porturi deschise pe router și fără server în cloud.
 
-Aplicația este publicată pe [Laravel Cloud](https://tracker-abonamente-production-ywyctg.laravel.cloud), direct din acest repository: fiecare push pe `main` declanșează un deploy nou.
+```
+Tester (browser) ──HTTPS──► Cloudflare Tunnel ──► calculatorul care rulează Docker
+                                                    ├─ web      Nginx (aplicație + /mail)
+                                                    ├─ app      Laravel (PHP-FPM)
+                                                    ├─ queue    joburi în fundal
+                                                    ├─ pgsql    PostgreSQL
+                                                    └─ mailpit  inbox pentru emailuri
+```
 
 ---
 
-## Testare pe site-ul online
+## Pentru testeri
 
-### 1. Înregistrare și verificarea emailului
-1. Apasă **Cont nou** și creează un cont cu o adresă de email la care ai acces.
-2. Parola trebuie să aibă minimum 10 caractere, litere mari și mici și o cifră. Lista de cerințe se bifează pe măsură ce scrii. Online, parola este verificată și în baze de date cu parole compromise, deci parolele foarte cunoscute sunt respinse.
-3. După înregistrare apare pagina „Verifică-ți adresa de email”. Deschide emailul primit și apasă butonul de verificare.
-4. Ești redirecționat pe dashboard. Fără verificare, dashboard-ul și setările nu sunt accesibile.
+Ai primit un link de forma `https://ceva-aleator.trycloudflare.com`, plus un utilizator și o parolă pentru inbox.
 
-### 2. Resetarea parolei
-1. Ieși din cont și, pe pagina de autentificare, apasă **Ai uitat parola?**
-2. Introdu emailul contului și deschide linkul primit pe email.
-3. Setează o parolă nouă și autentifică-te cu ea.
+1. Deschide linkul. Poți intra direct cu contul demo sau îți poți crea unul nou.
+2. Pentru un cont nou poți folosi **o adresă inventată** (ex. `ana@test.ro`). Emailurile nu pleacă nicăieri: ajung în inbox-ul de test.
+3. Inbox-ul este la **`<link>/mail`**. Autentifică-te cu utilizatorul și parola primite. Toți testerii văd același inbox, deci nu folosi adrese reale.
 
-### 3. Limitarea încercărilor de autentificare
-Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări, autentificarea este blocată pentru un minut.
-
-### 4. Profil, parolă și dispozitive conectate
-- **Setări → Profil**: schimbarea emailului cere o nouă verificare.
-- **Setări → Schimbă parola**: cere parola actuală.
-- **Setări → Dispozitive conectate**: sesiunile sunt salvate în PostgreSQL. Autentifică-te din alt browser sau de pe telefon, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt dispozitiv va fi deconectat.
-
----
-
-## Rulare locală
-
-### Cerințe
-
-| Unealtă | Versiune | Verificare |
-|---|---|---|
-| PHP | 8.3+ (cu extensia `pdo_pgsql`) | `php -v` |
-| Composer | 2.x | `composer -V` |
-| Node.js + npm | 20+ | `node -v` |
-| PostgreSQL | 15+ | `psql --version` |
-
-> Pe macOS:
-> - PHP + Composer: `/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.4)"` (pentru Windows/Linux vezi [php.new](https://php.new))
-> - PostgreSQL: [Postgres.app](https://postgresapp.com) (după instalare apasă **Initialize**)
-
-### Instalare
-
-```bash
-# 1. Clonează proiectul
-git clone https://github.com/mateid219/tracker-abonamente.git
-cd tracker-abonamente
-
-# 2. Creează baza de date
-createdb tracker_abonamente
-
-# 3. Creează fișierul de configurare
-cp .env.example .env
-```
-
-Deschide `.env` și completează datele de conectare la PostgreSQL:
-
-```
-DB_USERNAME=   # la Postgres.app: numele utilizatorului tău de macOS
-DB_PASSWORD=   # la Postgres.app: gol
-```
-
-```bash
-# 4. Instalează și configurează totul
-#    (pachete PHP și JS, cheia aplicației, tabele, cont demo, build CSS/JS)
-composer run setup
-
-# 5. Pornește aplicația
-composer run dev
-```
-
-Aplicația pornește la **http://localhost:8000**.
-
-### Cont demo (doar local)
+**Cont demo:**
 
 | Email | Parolă |
 |---|---|
 | `demo@example.test` | `Demo-Parola-2026` |
 
-Contul are emailul deja verificat, deci intri direct pe dashboard.
+### Ce poți testa
 
-### Emailuri în dezvoltare
+**1. Înregistrare și verificarea emailului**
+1. Apasă **Cont nou** și creează un cont.
+2. Parola trebuie să aibă minimum 10 caractere, litere mari și mici și o cifră. Este verificată și în baze de date publice cu parole compromise, deci parolele foarte cunoscute sunt respinse.
+3. Apare pagina „Verifică-ți adresa de email”. Deschide `<link>/mail`, deschide emailul primit și apasă butonul de verificare.
+4. Ajungi pe dashboard. Fără verificare, dashboard-ul și setările nu sunt accesibile.
 
-Local, emailurile **nu se trimit**: sunt scrise în `storage/logs/laravel.log` (`MAIL_MAILER=log`). Pentru linkul de verificare sau de resetare a parolei, după ce ai cerut emailul în aplicație, rulează:
+**2. Resetarea parolei**
+1. Ieși din cont și apasă **Ai uitat parola?** pe pagina de autentificare.
+2. Introdu emailul contului, apoi deschide emailul din `<link>/mail`.
+3. Setează o parolă nouă și autentifică-te cu ea.
+
+**3. Limitarea încercărilor de autentificare**
+Introdu de 6 ori o parolă greșită pentru același email: după 5 încercări, autentificarea este blocată pentru un minut.
+
+**4. Profil, parolă și dispozitive conectate**
+- **Setări → Profil**: schimbarea emailului cere o nouă verificare.
+- **Setări → Schimbă parola**: cere parola actuală.
+- **Setări → Dispozitive conectate**: autentifică-te din alt browser sau de pe telefon, apoi apasă **Deconectează celelalte dispozitive** în primul browser. Celălalt dispozitiv va fi deconectat.
+
+---
+
+## Pornire cu Docker
+
+### Cerințe
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/), instalat și **pornit**
+- Git
+
+Nu este nevoie de PHP, Composer, Node.js sau PostgreSQL pe calculator: totul rulează în containere.
+
+### 1. Pornire locală
+
+```bash
+git clone https://github.com/mateid219/tracker-abonamente.git
+cd tracker-abonamente
+docker compose up -d --build
+```
+
+Prima pornire durează câteva minute, cât se construiesc imaginile. La pornire, aplicația creează automat tabelele, contul demo și cheia de criptare.
+
+| Adresă | Ce este |
+|---|---|
+| http://localhost:8080 | Aplicația |
+| http://localhost:8080/mail | Inbox-ul cu emailuri (utilizator `tester`, parolă `tester`) |
+
+### 2. Link public pentru testeri (Cloudflare Tunnel)
+
+```bash
+docker compose --profile tunnel up -d --build
+```
+
+Afișează linkul public:
+
+```bash
+docker compose logs tunnel | grep -o 'https://.*trycloudflare.com'
+```
+
+Trimite testerilor linkul, plus utilizatorul și parola pentru `/mail`.
+
+Ce trebuie să știi:
+- **Linkul se schimbă** la fiecare repornire a tunelului. După repornire, trimite noul link.
+- Aplicația e accesibilă **doar cât timp calculatorul și Docker sunt pornite**.
+- Nu e nevoie de cont Cloudflare și nici de porturi deschise pe router.
+- Când testarea s-a încheiat, oprește tunelul:
+  ```bash
+  docker compose stop tunnel
+  ```
+
+### 3. Parola pentru inbox (recomandat înainte de a publica linkul)
+
+Inbox-ul `/mail` are implicit utilizatorul `tester` și parola `tester`. Ca să le schimbi, adaugă în fișierul `.env` din folderul proiectului (fișierul nu ajunge pe GitHub):
+
+```
+MAILPIT_USER=tester
+MAILPIT_PASSWORD=o-parola-a-ta
+```
+
+Apoi repornește: `docker compose --profile tunnel up -d`.
+
+### 4. Adresă fixă (opțional)
+
+Pentru un link care nu se schimbă, ai nevoie de un cont Cloudflare gratuit și de un domeniu administrat în Cloudflare:
+
+1. În [Cloudflare Zero Trust](https://one.dash.cloudflare.com) → **Networks → Tunnels**, creează un tunel de tip *Cloudflared*.
+2. Adaugă un **Public Hostname** (ex. `tracker.domeniul-tau.ro`) cu serviciul `HTTP` → `web:80`.
+3. Copiază **token-ul** tunelului în `.env`:
+   ```
+   CLOUDFLARE_TUNNEL_TOKEN=token-ul-copiat
+   ```
+4. Pornește cu profilul pentru tunel fix:
+   ```bash
+   docker compose --profile tunnel-named up -d --build
+   ```
+
+### Actualizare după modificări în cod
+
+```bash
+git pull
+docker compose --profile tunnel up -d --build
+```
+
+Doar containerele modificate sunt reconstruite. Datele din baza de date se păstrează.
+
+### Comenzi utile
+
+| Comandă | Ce face |
+|---|---|
+| `docker compose ps` | Starea containerelor |
+| `docker compose logs -f app` | Logurile aplicației (erori Laravel) |
+| `docker compose logs -f web` | Logurile serverului web |
+| `docker compose exec app php artisan route:list` | Rulează o comandă `artisan` în container |
+| `docker compose exec pgsql psql -U tracker tracker_abonamente` | Consola PostgreSQL |
+| `docker compose --profile tunnel down` | Oprește tot (datele rămân) |
+| `docker compose --profile tunnel down -v` | Oprește tot și **șterge toate datele** (conturi, emailuri) |
+
+### Probleme frecvente
+
+**`Cannot connect to the Docker daemon`**: Docker Desktop nu este pornit.
+
+**`port is already allocated` (8080)**: portul e folosit de alt program. Adaugă în `.env` `APP_PORT=8081` și pornește din nou.
+
+**Linkul trycloudflare nu se deschide**: tunelul poate avea nevoie de câteva secunde după pornire. Verifică `docker compose logs tunnel`. Dacă tunelul a fost repornit, linkul s-a schimbat.
+
+**Eroare 500**: cauza apare în `docker compose logs app`.
+
+---
+
+## Dezvoltare fără Docker (opțional)
+
+Pentru lucrul zilnic la cod, aplicația poate rula și direct pe calculator, cu reîncărcare automată a CSS/JS.
+
+Cerințe: PHP 8.3+ (cu `pdo_pgsql`), Composer, Node.js 20+, PostgreSQL (pe macOS: [php.new](https://php.new) și [Postgres.app](https://postgresapp.com)).
+
+```bash
+createdb tracker_abonamente
+cp .env.example .env        # completează DB_USERNAME / DB_PASSWORD
+composer run setup          # pachete, cheie, tabele, cont demo, build
+composer run dev            # http://localhost:8000
+```
+
+În acest mod emailurile sunt scrise în `storage/logs/laravel.log` (`MAIL_MAILER=log`). Ultimul link din emailuri îl afișezi cu:
 
 ```bash
 grep -oE 'http://localhost:8000/[^ "<]+' storage/logs/laravel.log | tail -1 | sed 's/&amp;/\&/g'
 ```
 
-Deschide linkul afișat în același browser în care ești autentificat. Linkurile expiră după 60 de minute.
-
----
-
-## Teste automate
+### Teste automate
 
 ```bash
 composer run test
 ```
 
-Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`), deci nu ating datele din PostgreSQL.
-
----
-
-## Configurare pe Laravel Cloud
-
-Setările de producție se definesc în **Laravel Cloud → Environment → Variables**, nu în `.env.example`. Baza de date PostgreSQL este oferită de Laravel Cloud.
-
-Pentru trimiterea emailurilor este nevoie de un serviciu SMTP, de exemplu Gmail cu o [parolă pentru aplicații](https://myaccount.google.com/apppasswords):
-
-```
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=adresa@gmail.com
-MAIL_PASSWORD=parola-pentru-aplicatii
-MAIL_FROM_ADDRESS=adresa@gmail.com
-MAIL_FROM_NAME="Tracker Abonamente"
-```
-
-> ⚠️ Parolele și cheile se pun doar în variabilele de mediu din Laravel Cloud, niciodată în cod sau pe GitHub.
-
----
-
-## Comenzi utile
-
-| Comandă | Ce face |
-|---|---|
-| `php artisan migrate` | Rulează migrările noi |
-| `php artisan migrate:fresh --seed` | Recreează toate tabelele și contul demo (**șterge datele locale**) |
-| `php artisan route:list` | Lista tuturor rutelor |
-| `php artisan db:show` | Informații despre conexiunea la baza de date |
-
----
-
-## Probleme frecvente
-
-**`could not find driver`**: lipsește extensia PHP `pdo_pgsql`. Verifică cu `php -m | grep pgsql`.
-
-**`database "tracker_abonamente" does not exist`**: rulează `createdb tracker_abonamente`.
-
-**`connection refused` (port 5432)**: PostgreSQL nu rulează. Pornește Postgres.app sau serviciul PostgreSQL.
-
-**Pagina se încarcă fără stiluri**: rulează `npm run build` sau pornește aplicația cu `composer run dev` (pornește și Vite).
+Testele rulează pe o bază SQLite în memorie (configurată în `phpunit.xml`) și nu ating datele din PostgreSQL.
 
 ---
 
@@ -157,6 +193,9 @@ MAIL_FROM_NAME="Tracker Abonamente"
 
 | Locație | Conținut |
 |---|---|
+| `compose.yaml` | Serviciile Docker: web, app, queue, pgsql, mailpit, tunnel |
+| `Dockerfile` | Imaginile `app` (PHP-FPM + Laravel) și `web` (Nginx) |
+| `docker/` | Configurarea Nginx, PHP și scriptul de pornire |
 | `routes/web.php` | Rutele aplicației (rutele de autentificare sunt adăugate de Fortify) |
 | `app/Http/Controllers/` | Controllere (ex. `SettingsController`) |
 | `app/Actions/Fortify/` | Logica de creare cont, resetare și schimbare parolă |
@@ -165,3 +204,7 @@ MAIL_FROM_NAME="Tracker Abonamente"
 | `resources/js/app.js` | Alpine.js |
 | `database/migrations/` | Structura bazei de date |
 | `lang/ro/` | Traducerile în română |
+
+---
+
+> ⚠️ Datele de acces din `compose.yaml` (baza de date `tracker`/`tracker`, inbox `tester`/`tester`) și contul demo sunt pentru testare. Când publici linkul, schimbă cel puțin parola inbox-ului și oprește tunelul după testare.
